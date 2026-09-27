@@ -1,0 +1,146 @@
+@import "tailwindcss";
+
+/* ============ DESIGN TOKENS ============ */
+/* Exposed to Tailwind's utility generator via @theme, so e.g. --color-orange
+   below gives you bg-orange / text-orange / border-orange for free. */
+@theme {
+  --color-bg: #111113;
+  --color-surface: #19191c;
+  --color-ink: #f2f0e9;
+  --color-ink-soft: #c7c4ba;
+  --color-line: #313134;
+  --color-line-strong: #47474b;
+  --color-steel: #96938a;
+  --color-orange: #64c497;
+  --color-blue: #6d97ff;
+  --color-tape-yellow: #e0b32a;
+  --color-tape-red: #64c497;
+  --color-focus: #6d97ff;
+
+  --font-display: 'Raleway', -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Raleway', -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Raleway', -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* Plain custom properties (not design-token colors/fonts) that are read at
+   runtime via calc()/var() in utility classes, and — for --tape-case-h —
+   written to by TapeWidget.jsx. */
+:root {
+  --nav-h: 76px;
+}
+
+/* ============ BASE / RESET ============ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+  body {
+    @apply m-0 bg-bg text-ink font-body text-base antialiased overflow-x-hidden;
+    line-height: 1.6;
+  }
+  img, svg { @apply max-w-full block; }
+  a { color: inherit; }
+  h1, h2, h3, h4 {
+    @apply font-display font-extrabold m-0;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  p { @apply m-0; }
+  button, input, textarea, select { font-family: inherit; font-size: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+}
+
+/* ============ COMPONENTS ============ */
+/* Kept as hand-written CSS rather than inline utilities only where the
+   pattern is a repeating background/gradient, a keyframe animation, or a
+   dense cluster of pseudo-elements driven by a JS-updated CSS variable
+   (the tape-measure widget) — everywhere else in the app uses Tailwind
+   utility classes directly in the JSX. */
+@layer components {
+  .blueprint-grid {
+    background-image:
+      linear-gradient(var(--color-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+    background-size: 34px 34px;
+    background-position: -1px -1px;
+    opacity: 0.5;
+  }
+
+  .cta-banner-stripes {
+    background: repeating-linear-gradient(45deg, transparent, transparent 10px,
+      color-mix(in srgb, var(--color-line) 65%, transparent) 10px,
+      color-mix(in srgb, var(--color-line) 65%, transparent) 11px);
+  }
+
+  /* ---------- TAPE WIDGET ---------- */
+  .tape-track {
+    position: fixed; right: clamp(14px, 3vw, 40px); top: calc(var(--nav-h) + 18px);
+    bottom: calc(var(--tape-case-h, 96px) + 22px); width: clamp(30px, 3.6vw, 46px);
+    z-index: 40; flex-direction: column; align-items: center; pointer-events: none; display: flex;
+  }
+  .tape-hook {
+    flex: none; width: 64%; height: 16px; background: linear-gradient(180deg, #d8d8d8, #9a9a9a);
+    border: 1px solid #6d6d6d; border-radius: 2px; position: relative; box-shadow: 0 2px 3px rgba(0,0,0,0.4);
+  }
+  .tape-hook::before {
+    content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 34%; height: 6px; background: #2c2c2c; border-radius: 1px;
+  }
+  .tape-wrap {
+    flex: 1; width: 100%; overflow: hidden; position: relative; margin-top: 2px;
+    -webkit-mask-image: linear-gradient(#000 96%, transparent); mask-image: linear-gradient(#000 96%, transparent);
+  }
+  .tape-ticks {
+    position: absolute; top: 0; left: 0; width: 100%;
+    clip-path: inset(0 0 calc((1 - var(--progress, 0)) * 100%) 0); will-change: clip-path;
+  }
+  @media (prefers-reduced-motion: no-preference) { .tape-ticks { transition: clip-path 60ms linear; } }
+  .tape-unit {
+    width: 100%; height: 15px; background: var(--color-tape-yellow); border-left: 1px solid #8a6d0f;
+    border-right: 1px solid #8a6d0f; position: relative; display: flex; align-items: flex-start; justify-content: center;
+  }
+  .tape-unit::after {
+    content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 36%; height: 2px; background: #3a3a3a;
+  }
+  .tape-unit.mid::after { width: 56%; height: 2px; }
+  .tape-unit.major::after { width: 78%; height: 2.5px; background: #1c1c1c; }
+  .tape-unit.major.foot { background: var(--color-tape-red); }
+  .tape-unit.major.foot::after { background: #1c1c1c; }
+  .tape-unit .tick-label { font-family: var(--font-mono); font-size: 8px; font-weight: 700; color: #2a2200; margin-top: 3px; line-height: 1; }
+  .tape-unit.foot .tick-label { color: #fff2ea; }
+  .tape-blade-edge { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(0,0,0,0.25); }
+  .tape-blade-edge.l { left: 0; } .tape-blade-edge.r { right: 0; }
+
+  .tape-case {
+    position: fixed; right: clamp(10px, 2.4vw, 28px); bottom: clamp(10px, 2.4vw, 28px);
+    width: clamp(78px, 9vw, 128px); height: clamp(78px, 9vw, 128px); z-index: 41;
+    background: linear-gradient(155deg, #232326, #0c0c0d); border-radius: 10px; border: 1px solid #000;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.05);
+    align-items: center; justify-content: center; flex-direction: column; pointer-events: none; display: flex;
+  }
+  .tape-case .grip { position: absolute; left: 10%; right: 10%; top: 14%; bottom: 14%; border: 2px solid var(--color-orange); border-radius: 6px; opacity: 0.85; }
+  .tape-case .slot { position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 38%; height: 6px; background: #000; border-radius: 3px; }
+  .tape-case img.mark-badge { width: 38%; height: auto; z-index: 1; filter: drop-shadow(0 0 6px rgba(0,0,0,0.4)); }
+
+  @media (max-width: 720px) {
+    .tape-track { width: 20px; right: 8px; }
+    .tape-hook { height: 11px; }
+    .tape-unit { height: 11px; }
+    .tape-unit .tick-label { font-size: 6.5px; }
+    .tape-case { width: 60px; height: 60px; right: 10px; bottom: 10px; }
+  }
+}
+
+@keyframes scroll-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
