@@ -123,7 +123,7 @@
   .tape-case {
     position: fixed; right: clamp(10px, 2.4vw, 28px); bottom: clamp(10px, 2.4vw, 28px);
     width: clamp(56px, 2vw, 128px); height: clamp(78px, 9vw, 128px); z-index: 41;
-    background: linear-gradient(155deg, #232326, #0c0c0d); b order-radius: 10px; border: 1px solid #000;
+    background: linear-gradient(155deg, #232326, #0c0c0d); border-radius: 10px; border: 1px solid #000;
     box-shadow: 0 10px 26px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.05);
     align-items: center; justify-content: center; flex-direction: column; pointer-events: none; display: flex;
   }
